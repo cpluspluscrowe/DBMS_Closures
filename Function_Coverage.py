@@ -253,7 +253,7 @@ def Canonical_Closure(d):
 
 
 #F={ABCD, BCAD, BDAC}
-e = {'AB':['CD'],'BC':['AD'],'BD':['AC']}
+e = {'A':['BC'],'B':['C'],'A':['B'],'AB':['C']}
 
 d = Closure(e,'')
 #for key in sorted(d):
