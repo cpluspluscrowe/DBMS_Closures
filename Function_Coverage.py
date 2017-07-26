@@ -26,16 +26,17 @@ def decomposition(d,key,tracking):
                     d[key].append(letter)
 
 def transitivity(d,tracking):
-    for x in d:
-        for k1 in d:
-            v1s = d[k1]
-            for value in v1s:
-                if value in d:
-                    for v2 in d[value]:
-                        if not IsInDictionary(d,k1,v2):
-                            if k1 == tracking:
-                                print("By Transitivity: " + k1 + " -> " + value + "; " + value + " -> " + v2 + "; implies " + k1 + " -> " + v2)
-                            d[k1].append(v2)
+    for cnt in range(5):
+        for x in d:
+            for k1 in d:
+                v1s = d[k1]
+                for value in v1s:
+                    if value in d:
+                        for v2 in d[value]:
+                            if not IsInDictionary(d,k1,v2):
+                                if k1 == tracking:
+                                    print("By Transitivity: " + k1 + " -> " + value + "; " + value + " -> " + v2 + "; implies " + k1 + " -> " + v2)
+                                d[k1].append(v2)
 
 def GetLetters(List):
     l = []
@@ -162,7 +163,9 @@ def removeTrivial(d):
 
 def Closure(d,variable_to_track):
     d_changed = True
-    while d_changed:
+    cnt = -1
+    while d_changed or cnt < 5:
+        cnt += 1
         d_start = deepcopy(d)
         for key in list(d):
             decomposition(d,key,variable_to_track)
@@ -236,8 +239,6 @@ def Canonical_Closure(d):
     RemoveLargerSets(fc)
     RemoveReflexiveTrivial(fc)
     RemoveEmpty(fc)
-    print(d)
-    print("----")
     for key in list(d):
         for value in d[key]:
             temp = deepcopy(d)
@@ -248,11 +249,11 @@ def Canonical_Closure(d):
                     if value in fc[key]:
                         fc[key].remove(value)
 
-    print(fc)
     PrintCanonicalClosure(fc)
 
 
-e = {'AB':['C'],'C':['AD'],'D':['C']}
+#F={ABCD, BCAD, BDAC}
+e = {'AB':['CD'],'BC':['AD'],'BD':['AC']}
 
 d = Closure(e,'')
 #for key in sorted(d):
