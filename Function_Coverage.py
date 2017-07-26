@@ -2,8 +2,11 @@
 import itertools
 from copy import deepcopy
 
-d = {'A':['BC'],'B':['CE'],'CD':['A']}
-
+#d = {'A':['BC'],'B':['CE'],'CD':['A']}
+#d = {'A':['B'],'B':['CE'],'DE':['AF']}
+#R (ABCDEFG) and the
+#F = {AC B, AB C, ACD  BE, C  D, EF}
+d = {'AC':['B'],'AB':['C'],'ACD':['BE'],'C':['D'],'E':['F']}
 
 def decomposition(key,tracking):
     for value in d[key]:
@@ -153,8 +156,44 @@ def Closure(variable_to_track):
     c = closure(variable_to_track)
     print("Closure of " + variable_to_track + ": " + c)
 
+def RemoveComplexValues():
+    for key in list(d):
+        for value in list(d[key]):
+            if len(value) > 1:
+                d[key].remove(value)
 
-Closure('A')
+def Canonical_Closure():
+    RemoveComplexValues()
+    for k1 in list(d):
+        for k2 in list(d):
+            if k1 != k2:
+                vals1 = d[k1]
+                vals2 = d[k2]
+                for v1 in vals1:
+                    for v2 in vals2:
+                        if v1 == v2:
+                            if len(k1) > len(k2):
+                                d[k1].remove(v1)
+                            else:
+                                d[k2].remove(v2)
+    for key in list(d):
+        if key in d[key]:
+            d[key].remove(key)
+        if len(key) > 1:
+            for letter in key:
+                if letter in d[key]:
+                    d[key].remove(letter)
+    for key in list(d):
+        if d[key] == []:
+            del d[key]
+    print("Canonical Closure:")
+    for key in d:
+        values = d[key]
+        values.sort()
+        print(key + " -> " + ''.join(values))
+    print()
+
+Canonical_Closure()
 
 #aggregations()
 #closureA = closure('A')
