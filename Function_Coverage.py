@@ -22,11 +22,11 @@ def decomposition(d,key,tracking):
             for letter in value:
                 if not IsInDictionary(d,key,letter):
                     if key == tracking:
-                        print("By Decompositon: " + key + " -> " + letter)
+                        print("By Decompositon: " + key + " -> " + value + "; " + key + " -> " + letter)
                     d[key].append(letter)
 
 def transitivity(d,tracking):
-    for cnt in range(5):
+    for cnt in range(3):
         for x in d:
             for k1 in d:
                 v1s = d[k1]
@@ -63,7 +63,10 @@ def reflexivity(d,key,tracking):
     for letter in keys:
         if not letter in d[key]:
             if key == tracking:
-                print("By Reflexivity: " + key + " -> " + letter)
+                if len(keys) == 1:
+                    print("Trivially: " + key + " -> " + letter)
+                else:
+                    print("By Reflexivity: " + key + " -> " + letter)
             d[key].append(letter)
 
 def closure(d,letter):
@@ -161,10 +164,19 @@ def removeTrivial(d):
         if found_nontrivial == False:
             del d[key]
 
-def Closure(d,variable_to_track):
+def PrintGiven(d,tracking):
+    if tracking in d:
+        for val in d[tracking]:
+            print("Given: " + tracking + " -> " + val)
+
+def Closure(d,variable_to_track,cnt_max):
+    d = deepcopy(d)
+    if variable_to_track != '':
+        print("Calculate Closure of: " + variable_to_track)
+    PrintGiven(d,variable_to_track)
     d_changed = True
     cnt = -1
-    while d_changed or cnt < 5:
+    while d_changed or cnt < cnt_max:
         cnt += 1
         d_start = deepcopy(d)
         for key in list(d):
@@ -179,6 +191,7 @@ def Closure(d,variable_to_track):
     c = closure(d,variable_to_track)
     if c != '':
         print("Closure of " + variable_to_track + ": " + c)
+        print()
     RemoveReflexiveTrivial(d)
     return d
 
@@ -224,26 +237,27 @@ def RemoveEmpty(d):
         if d[key] == []:
             del d[key]
 
-def PrintCanonicalClosure(d):
-    print("Canonical Closure:")
+def PrintCanonicalCover(d):
+    print("Canonical Cover:")
     for key in sorted(d):
         values = d[key]
         values.sort()
         print(key + " -> " + ''.join(values))
     print()
 
-def Canonical_Closure(d):
-    d = Closure(d,'')
+def Canonical_Cover(d):
+    d = Closure(d,'',5)
     fc = deepcopy(d)
     RemoveComplexValues(fc)
     RemoveLargerSets(fc)
     RemoveReflexiveTrivial(fc)
     RemoveEmpty(fc)
+    PrintCanonicalCover(fc)
     for key in list(d):
         for value in d[key]:
             temp = deepcopy(d)
             temp[key].remove(value)
-            newf = Closure(deepcopy(temp),'')
+            newf = Closure(deepcopy(temp),'',1)
             if newf == d:
                 if key in fc:
                     if value in fc[key]:
@@ -253,13 +267,20 @@ def Canonical_Closure(d):
 
 
 #F={ABCD, BCAD, BDAC}
-e = {'A':['BC'],'B':['C'],'A':['B'],'AB':['C']}
+#F = {AC B, AB C, ACD  BE, C  D, EF}. 
+e = {'AC':['B'],'AB':['C'],'ACD':['BE'],'C':['D'],'E':['F']}
 
-d = Closure(e,'')
+Closure(e,'AC',2)
+Closure(e,'AB',2)
+Closure(e,'ACD',2)
+Closure(e,'C',2)
+Closure(e,'E',2)
+
+
 #for key in sorted(d):
 #    print(key + ": ")
 #    print(','.join(d[key]))
-Canonical_Closure(d)
+#Canonical_Cover(d)
 
 
 
