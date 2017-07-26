@@ -6,25 +6,33 @@ from copy import deepcopy
 #d = {'A':['B'],'B':['CE'],'DE':['AF']}
 #R (ABCDEFG) and the
 #F = {AC B, AB C, ACD  BE, C  D, EF}
-d = {'AC':['B'],'AB':['C'],'ACD':['BE'],'C':['D'],'E':['F']}
+#d = {'AC':['B'],'AB':['C'],'ACD':['BE'],'C':['D'],'E':['F']}
+#R(ABCD), F={ABC, BCD}
+#d = {'A':['B'],'B':['C'],'AC':['D']}
+#d = {'AB':['C'],'C':['AD'],'D':['C']}
+#(a)	R(ABCD), F={ABC, BCD}
+#F={ABC, CAD, DC}
+#C is extraneous in AB  CD since  AB  C can be inferred even after deleting C from CD
 
-def decomposition(key,tracking):
+
+
+def decomposition(d,key,tracking):
     for value in d[key]:
         if len(value) > 1:
             for letter in value:
-                if not IsInDictionary(key,letter):
+                if not IsInDictionary(d,key,letter):
                     if key == tracking:
                         print("By Decompositon: " + key + " -> " + letter)
                     d[key].append(letter)
 
-def transitivity(tracking):
+def transitivity(d,tracking):
     for x in d:
         for k1 in d:
             v1s = d[k1]
             for value in v1s:
                 if value in d:
                     for v2 in d[value]:
-                        if not IsInDictionary(k1,v2):
+                        if not IsInDictionary(d,k1,v2):
                             if k1 == tracking:
                                 print("By Transitivity: " + k1 + " -> " + value + "; " + value + " -> " + v2 + "; implies " + k1 + " -> " + v2)
                             d[k1].append(v2)
@@ -35,7 +43,7 @@ def GetLetters(List):
         l.append(letter)
     return l
 
-def IsInDictionary(key,check_value):
+def IsInDictionary(d,key,check_value):
     if not key in d:
         return False
     if check_value in d[key]:
@@ -49,7 +57,7 @@ def IsInDictionary(key,check_value):
             return False
     return True
 
-def reflexivity(key,tracking):
+def reflexivity(d,key,tracking):
     keys = GetLetters(key)
     for letter in keys:
         if not letter in d[key]:
@@ -57,7 +65,9 @@ def reflexivity(key,tracking):
                 print("By Reflexivity: " + key + " -> " + letter)
             d[key].append(letter)
 
-def closure(letter):
+def closure(d,letter):
+    if letter == '':
+        return ''
     if letter in d:
         s = set()
         for List in d[letter]:
@@ -68,14 +78,14 @@ def closure(letter):
     string = ''.join(l)
     return string
 
-def GetRList():
-    r = GetR()
+def GetRList(d):
+    r = GetR(d)
     l = []
     for letter in r:
         l.append(letter)
     return l
 
-def GetR():
+def GetR(d):
     r = set()
     for k in d:
         for kletter in k:
@@ -97,7 +107,7 @@ def noRepeats(value):
     string = ''.join(l)
     return string
 
-def AddAugmentValues(key_from,key_to_append_to,augmentation):
+def AddAugmentValues(d,key_from,key_to_append_to,augmentation):
     print("Adding Augment:",key_from,key_to_append_to,augmentation)
     changed = False
     from_vals = d[key_from]
@@ -109,7 +119,7 @@ def AddAugmentValues(key_from,key_to_append_to,augmentation):
             changed = True
     return changed
 
-def Augment(key,value_to_augment):
+def Augment(d,key,value_to_augment):
     new_key = noRepeats(key + value_to_augment)
     if not key in d:
         print(key,"Not in d!")
@@ -127,43 +137,63 @@ def Augment(key,value_to_augment):
     d[new_key] = list(new_values)
     return True
 
-def aggregate(new_key):
-    pass
 
-def aggregations():
+def aggregations(d):
     for key in list(d):
-        R = GetRList()
+        R = GetRList(d)
         for cnt in range(3):
             for x in itertools.combinations(R,cnt):
                 l = list(x)
                 l.sort()
                 string = ''.join(l)
-                if Augment(key,string):
+                if Augment(d,key,string):
                     pass
 
-def Closure(variable_to_track):
+def removeTrivial(d):
+    for key in list(d):
+        keys = GetLetters(d[key])
+        found_nontrivial = False
+        for value in d[key]:
+            for val in value:
+                if not val in key:
+                    found_nontrivial = True
+        if found_nontrivial == False:
+            del d[key]
+
+def Closure(d,variable_to_track):
     d_changed = True
     while d_changed:
         d_start = deepcopy(d)
         for key in list(d):
-            decomposition(key,variable_to_track)
-            transitivity(variable_to_track)
+            decomposition(d,key,variable_to_track)
+            transitivity(d,variable_to_track)
             for k in list(d):
-                reflexivity(k,variable_to_track)
-            aggregations()
+                reflexivity(d,k,variable_to_track)
+            aggregations(d)
         if d_start == d:
             d_changed = False
-    c = closure(variable_to_track)
-    print("Closure of " + variable_to_track + ": " + c)
+    removeTrivial(d)
+    c = closure(d,variable_to_track)
+    if c != '':
+        print("Closure of " + variable_to_track + ": " + c)
+    RemoveReflexiveTrivial(d)
+    return d
 
-def RemoveComplexValues():
+def RemoveComplexValues(d):
     for key in list(d):
         for value in list(d[key]):
             if len(value) > 1:
                 d[key].remove(value)
 
-def Canonical_Closure():
-    RemoveComplexValues()
+def IsSubSet(a,b):
+    a_list = GetLetters(a)
+    b_list = GetLetters(b)
+    for x in b_list:
+        if x not in a_list:
+            return False
+    return True
+
+def RemoveLargerSets(d):
     for k1 in list(d):
         for k2 in list(d):
             if k1 != k2:
@@ -171,11 +201,13 @@ def Canonical_Closure():
                 vals2 = d[k2]
                 for v1 in vals1:
                     for v2 in vals2:
-                        if v1 == v2:
-                            if len(k1) > len(k2):
+                       if v1 == v2:
+                            if IsSubSet(k1,k2):
                                 d[k1].remove(v1)
-                            else:
+                            elif IsSubSet(k2,k1):
                                 d[k2].remove(v2)
+
+def RemoveReflexiveTrivial(d):
     for key in list(d):
         if key in d[key]:
             d[key].remove(key)
@@ -183,17 +215,53 @@ def Canonical_Closure():
             for letter in key:
                 if letter in d[key]:
                     d[key].remove(letter)
+
+def RemoveEmpty(d):
     for key in list(d):
         if d[key] == []:
             del d[key]
+
+def PrintCanonicalClosure(d):
     print("Canonical Closure:")
-    for key in d:
+    for key in sorted(d):
         values = d[key]
         values.sort()
         print(key + " -> " + ''.join(values))
     print()
 
-Canonical_Closure()
+def Canonical_Closure(d):
+    d = Closure(d,'')
+    fc = deepcopy(d)
+    RemoveComplexValues(fc)
+    RemoveLargerSets(fc)
+    RemoveReflexiveTrivial(fc)
+    RemoveEmpty(fc)
+    print(d)
+    print("----")
+    for key in list(d):
+        for value in d[key]:
+            temp = deepcopy(d)
+            temp[key].remove(value)
+            newf = Closure(deepcopy(temp),'')
+            if newf == d:
+                if key in fc:
+                    if value in fc[key]:
+                        fc[key].remove(value)
+
+    print(fc)
+    PrintCanonicalClosure(fc)
+
+
+e = {'AB':['C'],'C':['AD'],'D':['C']}
+
+d = Closure(e,'')
+#for key in sorted(d):
+#    print(key + ": ")
+#    print(','.join(d[key]))
+Canonical_Closure(d)
+
+
+
 
 #aggregations()
 #closureA = closure('A')
