@@ -1,16 +1,20 @@
 #Consider R (ABCDEF) with F = {A B, B CE, CD A}. Compute (i) A+; (ii) (CD)+.
 import itertools
+from copy import deepcopy
 
-d = {'A':['B'],'B':['CE'],'CD':['A']}
+d = {'A':['BC'],'B':['CE'],'CD':['A']}
 
-def decomposition(key):
+
+def decomposition(key,tracking):
     for value in d[key]:
         if len(value) > 1:
             for letter in value:
                 if not IsInDictionary(key,letter):
+                    if key == tracking:
+                        print("By Decompositon: " + key + " -> " + letter)
                     d[key].append(letter)
 
-def transitivity():
+def transitivity(tracking):
     for x in d:
         for k1 in d:
             v1s = d[k1]
@@ -18,6 +22,8 @@ def transitivity():
                 if value in d:
                     for v2 in d[value]:
                         if not IsInDictionary(k1,v2):
+                            if k1 == tracking:
+                                print("By Transitivity: " + k1 + " -> " + value + "; " + value + " -> " + v2 + "; implies " + k1 + " -> " + v2)
                             d[k1].append(v2)
 
 def GetLetters(List):
@@ -40,10 +46,12 @@ def IsInDictionary(key,check_value):
             return False
     return True
 
-def reflexivity(key):
+def reflexivity(key,tracking):
     keys = GetLetters(key)
     for letter in keys:
         if not letter in d[key]:
+            if key == tracking:
+                print("By Reflexivity: " + key + " -> " + letter)
             d[key].append(letter)
 
 def closure(letter):
@@ -122,25 +130,31 @@ def aggregate(new_key):
 def aggregations():
     for key in list(d):
         R = GetRList()
-        for cnt in range(2):
+        for cnt in range(3):
             for x in itertools.combinations(R,cnt):
                 l = list(x)
                 l.sort()
                 string = ''.join(l)
                 if Augment(key,string):
                     pass
-              
-for key in list(d):
-    decomposition(key)
-    print("Dec:",d['A'])
-    transitivity()
-    print("Trans",d['A'])
-    for k in list(d):
-        reflexivity(k)
-    print("Reflex",d['A'])
-    aggregations()
-    print("Aggr",d['A'])
 
+def Closure(variable_to_track):
+    d_changed = True
+    while d_changed:
+        d_start = deepcopy(d)
+        for key in list(d):
+            decomposition(key,variable_to_track)
+            transitivity(variable_to_track)
+            for k in list(d):
+                reflexivity(k,variable_to_track)
+            aggregations()
+        if d_start == d:
+            d_changed = False
+    c = closure(variable_to_track)
+    print("Closure of " + variable_to_track + ": " + c)
+
+
+Closure('A')
 
 #aggregations()
 #closureA = closure('A')
